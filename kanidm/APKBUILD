@@ -32,10 +32,6 @@ check() {
 	return 0
 }
 
-package() {
-	return 0
-}
-
 server() {
 	cd "$builddir"
 	install -Dm755 -t "$subpkgdir"/usr/bin/ \
