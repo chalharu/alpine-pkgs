@@ -2,7 +2,7 @@
 # Maintainer: Mitsuharu Seki <mitsu1986@gmail.com>
 pkgname=cloudflared
 # renovate: datasource=github-releases depName=cloudflare/cloudflared
-pkgver=2024.8.3
+pkgver=2024.9.0
 pkgrel=2
 pkgdesc="Cloudflare Tunnel client (formerly Argo Tunnel) "
 url="https://github.com/cloudflare/cloudflared"
@@ -21,11 +21,11 @@ pkggroups="$pkgname"
 install="$pkgname.pre-install"
 
 case "$CARCH" in
-    x86)     _binarch=386; sha512sums="fd8cb8a8c98ffc1e20cc055c9471dd1c359d4e712577ecad9a305edb29a20797eee6358b3e0539714bc357f2875c234aad5421a4022dd3791460a087cdfee961  cloudflared-linux-$_binarch-$pkgver" ;;
-    x86_64)  _binarch=amd64; sha512sums="6d8b4dee11df47f7a74e32cc954569ab3de02c0e8de033504994970d3d6d02b8d50f690517453b0c7c8ab926dc93b31926d12bcf8870588e329434e450532773  cloudflared-linux-$_binarch-$pkgver";;
-    armv7)   _binarch=arm; sha512sums="177e71cc5b68d4c18dd2c9fd4ddea32297332028c7e07beea505821c0b8a93e2ba4ad0d71c883a3c1a8474d80042c0b84e143c1f06d573739852153910b90ca4  cloudflared-linux-$_binarch-$pkgver";;
-    armhf)   _binarch=armhf; sha512sums="e2a16c677c66a57b663b59093fd54b1c9dce343365c99a80285c22e26c9adf91bbe4b5c9533afa3fb9f9abba2a639271ae0c483cce0906f11718b54e6f4b52ed  cloudflared-linux-$_binarch-$pkgver";;
-    aarch64) _binarch=arm64; sha512sums="8da9cdb648c616d6eed8ac60654b4f9ff744ade2accaa8e9af71f87a50a475eb5cff174605322459f9a13ed71d55b24ee90e51615235799ba70134aa2200096e  cloudflared-linux-$_binarch-$pkgver";;
+    x86)     _binarch=386; sha512sums="3c29b4f67b682df9928626661a9940e76b44995ec30f2b78412c672b51b6fde73c5025cc2786390a9502e97140b328e222ccfaff209156c548b163f0b90b3211  cloudflared-linux-$_binarch-$pkgver" ;;
+    x86_64)  _binarch=amd64; sha512sums="6c5ca7f05b0356b182bafd62ba1831113da973e2bfc18b8edc839b0bdcf017c00bbb867b10be40c78bc2a4cd022a610bbffc75fd6352367835d1870c1cebd2c6  cloudflared-linux-$_binarch-$pkgver";;
+    armv7)   _binarch=arm; sha512sums="7834420d85c4ff8027f622c3418c75da0d3dbe13716e20795781556b1e5435fed8858137fc8e370424b2425fc0cadde8017c03cca1fb31bd0fea6048eb524d42  cloudflared-linux-$_binarch-$pkgver";;
+    armhf)   _binarch=armhf; sha512sums="ab745361baf784fd843cb40868e2ce2f55b5d68e65878c83f7d3f65fde593ffbb30db2004e2b5310c9db83a073e54007a96f947ac7bcca0e58a2aa7fd749805f  cloudflared-linux-$_binarch-$pkgver";;
+    aarch64) _binarch=arm64; sha512sums="1a12af1292886e1d7f3adc47dd341843001ad86cdc57ead6451b6d00ba0c8faf4f0cf87dd7e0b3cd02a2d49f61586d715eb783f82ff26a9013d3840ab49ad296  cloudflared-linux-$_binarch-$pkgver";;
     *)       msg "Unable to determine architecture from (CARCH=$CARCH)" ; return 1 ;;
 esac
 
