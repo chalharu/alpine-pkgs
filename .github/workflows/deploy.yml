@@ -59,7 +59,7 @@ jobs:
       repository-name: ${{ needs.initialize.outputs.repository-name }}
       apk-arch: ${{ matrix.apk-arch }}
       arch: ${{ matrix.arch }}
-    uses: "./.github/workflows/build.yml@main"
+    uses: "./.github/workflows/build.yml"
   upload-artifact:
     strategy:
       matrix:
