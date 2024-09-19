@@ -9,10 +9,10 @@ url="https://github.com/kanidm/kanidm"
 arch="x86_64 aarch64"
 license="Apache-2.0"
 depends=""
-makedepends="eudev-dev gcc libc-utils make musl-dev openssl-dev openssl-libs-static pkgconfig rustup"
+makedepends="eudev-dev gcc libc-utils make musl-dev openssl-dev openssl-libs-static pkgconfig rustup rsync bc bash"
 checkdepends=""
 install=""
-subpackages="kanidmd:server"
+subpackages="kanidm-server:server kanidm-client:client kanidm-unixd-clients:unixd_clients"
 source="$pkgname-$pkgver.tar.gz::https://github.com/kanidm/kanidm/archive/refs/tags/v$pkgver.tar.gz"
 builddir="$srcdir/kanidm-$pkgver"
 options=""
@@ -20,9 +20,16 @@ options=""
 build() {
 	rustup-init -y
 	. "$HOME/.cargo/env"
-    make release/kanidmd
+	cargo install wasm-pack
+	cargo install wasm-bindgen-cli
+	export KANIDM_BUILD_PROFILE=release_linux
+	cargo build --locked --release --target-dir target \
+      --package daemon \
+      --package kanidm-ipa-sync \
+      --package kanidm_tools \
+      --package kanidm_unix_int
+	make webui
 	strip target/release/kanidmd
-	make release/kanidm
 	strip target/release/kanidm
 }
 
@@ -32,8 +39,7 @@ check() {
 }
 
 package() {
-	install -Dm755 -t "$pkgdir"/usr/bin/ \
-		target/release/kanidm
+	depends="kanidm-server kanidm-client kanidm-unixd-clients"
 	return 0
 }
 
@@ -41,6 +47,31 @@ server() {
 	cd "$builddir"
 	install -Dm755 -t "$subpkgdir"/usr/bin/ \
 		target/release/kanidmd
+	install -Dm755 -t "$subpkgdir"/usr/bin/ \
+		target/release/kanidm-ipa-sync
+	
+	install -dv "$subpkgdir"/usr/share/kanidm/ui/
+	cp -r server/web_ui/pkg "$pkgdir"/usr/share/kanidm/ui/
+}
+
+client() {
+	cd "$builddir"
+	install -Dm755 -t "$subpkgdir"/usr/bin/ \
+		target/release/kanidm
+}
+
+unixd_clients() {
+	cd "$builddir"
+	install -Dm755 -t "$subpkgdir"/usr/bin/ \
+		target/release/kanidm_ssh_authorizedkeys
+	install -Dm755 -t "$subpkgdir"/usr/bin/ \
+		target/release/kanidm_ssh_authorizedkeys_direct
+	install -Dm755 -t "$subpkgdir"/usr/bin/ \
+		target/release/kanidm-unix
+	install -Dm755 -t "$subpkgdir"/usr/bin/ \
+		target/release/kanidm_unixd
+	install -Dm755 -t "$subpkgdir"/usr/bin/ \
+		target/release/kanidm_unixd_tasks
 }
 
 sha512sums="
