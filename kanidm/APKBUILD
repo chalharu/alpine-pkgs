@@ -28,9 +28,15 @@ build() {
       --package kanidm-ipa-sync \
       --package kanidm_tools \
       --package kanidm_unix_int
-	make webui
-	strip target/release/kanidmd
 	strip target/release/kanidm
+	strip target/release/kanidm-ipa-sync
+	strip target/release/kanidm-unix
+	strip target/release/kanidm_ssh_authorizedkeys
+	strip target/release/kanidm_ssh_authorizedkeys_direct
+	strip target/release/kanidm_unixd
+	strip target/release/kanidm_unixd_tasks
+	strip target/release/kanidmd
+	make webui
 }
 
 check() {
