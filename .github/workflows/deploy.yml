@@ -39,6 +39,7 @@ jobs:
       apkbuild-files: ${{ steps.apkbuild-files.outputs.apkbuild-files }}
   build:
     strategy:
+      fail-fast: false
       matrix:
         apk-arch:
           - x86_64
