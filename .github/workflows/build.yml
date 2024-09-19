@@ -1,4 +1,4 @@
-name: Build alpine paclages
+name: Build alpine packages
 on:
   workflow_call:
     inputs:
