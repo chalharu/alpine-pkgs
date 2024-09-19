@@ -17,6 +17,7 @@ on:
 jobs:
   build:
     strategy:
+      max-parallel: 1
       matrix:
         apkbuild-files: ${{ fromJson(inputs.apkbuild-files) }}
     environment: Alpine packages
