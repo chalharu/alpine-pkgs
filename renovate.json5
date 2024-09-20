@@ -16,7 +16,7 @@
     {
       "customType": "regex",
       "fileMatch": ["^(.+\\/)?[^/]+.yml$"],
-      "matchStrings": [ "#[\\t ]*renovate:[\\t ]*datasource=(?<datasource>[a-z-]+?)(?:[\\t ]+depName=(?<depName>.+?))?(?:[\\t ]+versioning=(?<versioning>[a-z-]+?))?\\n[\\t ]*DOCKER_[A-Z_]+_VERSION: \"(?<currentValue>.*)\"\\n" ]
+      "matchStrings": [ "#[\\t ]*renovate:[\\t ]*datasource=(?<datasource>[a-z-]+?)(?:[\\t ]+depName=(?<depName>.+?))?(?:[\\t ]+versioning=(?<versioning>[a-z-]+?))?\\n[\\t ]*[A-Z_]+_VERSION: \"(?<currentValue>.*)\"\\n" ]
     }
   ],
   "packageRules": [

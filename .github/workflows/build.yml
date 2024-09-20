@@ -42,6 +42,18 @@ jobs:
           mkdir ./keys
           echo $PACKAGER_PRIVKEY | base64 -d > ./keys/${{ vars.PACKAGER_KEYFILENAME }}
           echo $PACKAGER_PUBKEY | base64 -d > ./keys/${{ vars.PACKAGER_KEYFILENAME }}.pub
+      - name: Install sccache
+        env:
+          LINK: https://github.com/mozilla/sccache/releases/download
+          # renovate: datasource=github-releases depName=cloudflare/cloudflared
+          SCCACHE_VERSION: 0.8.1
+        run: |
+          SCCACHE_FILE=sccache-v$SCCACHE_VERSION-x86_64-unknown-linux-musl
+          mkdir -p $HOME/.local/bin
+          curl -L "$LINK/v$SCCACHE_VERSION/$SCCACHE_FILE.tar.gz" | tar xz
+          mv -f $SCCACHE_FILE/sccache $HOME/.local/bin/sccache
+          chmod +x $HOME/.local/bin/sccache
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
       - uses: actions/cache@v4.0.2
         with:
           path: ./packages
