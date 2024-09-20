@@ -9,7 +9,7 @@ url="https://github.com/kanidm/kanidm"
 arch="x86_64 aarch64"
 license="Apache-2.0"
 depends=""
-makedepends="eudev-dev gcc libc-utils make musl-dev openssl-dev openssl-libs-static pkgconfig rustup rsync bc bash"
+makedepends="bash bc brotli eudev-dev gcc libc-utils linux-pam-dev make musl-dev openssl-dev openssl-libs-static pkgconfig rsync rustup"
 checkdepends=""
 install=""
 subpackages="kanidm-server:server kanidm-client:client kanidm-unixd-clients:unixd_clients"
@@ -36,6 +36,12 @@ build() {
 	strip target/release/kanidm_unixd
 	strip target/release/kanidm_unixd_tasks
 	strip target/release/kanidmd
+	RUSTFLAGS="-C target-feature=-crt-static" \
+	  cargo build --locked --release --target-dir target \
+	  --package nss_kanidm \
+	  --package pam_kanidm
+	strip target/release/libnss_kanidm.so
+	strip target/release/libpam_kanidm.so
 	make webui
 }
 
@@ -78,6 +84,10 @@ unixd_clients() {
 		target/release/kanidm_unixd
 	install -Dm755 -t "$subpkgdir"/usr/bin/ \
 		target/release/kanidm_unixd_tasks
+    install -Dm755 target/release/libnss_kanidm.so \
+	    "$subpkgdir"/usr/lib/libnss_kanidm.so.2
+    install -Dm755 target/release/libpam_kanidm.so \
+	    "$subpkgdir"/usr/lib/security/pam_kanidm.so
 }
 
 sha512sums="
