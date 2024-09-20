@@ -23,6 +23,7 @@ jobs:
         apkbuild-files: ${{ fromJson(inputs.apkbuild-files) }}
     environment: Alpine packages
     runs-on: ubuntu-latest
+    timeout-minutes: 720
     steps:
       - name: IDの生成
         id: build-id
