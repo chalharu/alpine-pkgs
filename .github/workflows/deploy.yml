@@ -71,7 +71,7 @@ jobs:
       - build
       - initialize
     steps:
-      - uses: actions/cache/restore@v4.0.2
+      - uses: actions/cache/restore@v4.1.0
         with:
           path: ./packages
           key: packages-${{ matrix.apk-arch }}-99999999999999
