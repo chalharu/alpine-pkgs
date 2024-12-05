@@ -54,7 +54,7 @@ jobs:
           PACKAGER_PRIVKEY: ${{ secrets.PACKAGER_PRIVKEY }}
           PACKAGER_PUBKEY: ${{ vars.PACKAGER_PUBKEY }}
           # renovate: datasource=docker depName=alpine
-          DOCKER_ALPINE_VERSION: "3.20"
+          DOCKER_ALPINE_VERSION: "3.21"
         run: |
           docker run --platform linux/${{ inputs.arch }} --rm -i -v $(dirname ${{ matrix.apkbuild-files }}):/${{ inputs.repository-name }}/src -v $PWD/keys:/${{ inputs.repository-name }}/keys -v $PWD/packages:/${{ inputs.repository-name }}/packages alpine:${{ env.DOCKER_ALPINE_VERSION }} sh <<'EOF'
           apk add alpine-sdk
