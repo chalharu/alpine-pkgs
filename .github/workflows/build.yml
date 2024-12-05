@@ -42,7 +42,7 @@ jobs:
           mkdir ./keys
           echo $PACKAGER_PRIVKEY | base64 -d > ./keys/${{ vars.PACKAGER_KEYFILENAME }}
           echo $PACKAGER_PUBKEY | base64 -d > ./keys/${{ vars.PACKAGER_KEYFILENAME }}.pub
-      - uses: actions/cache@v4.1.2
+      - uses: actions/cache@v4.2.0
         with:
           path: ./packages
           key: packages-${{ inputs.apk-arch }}-${{ steps.build-id.outputs.id }}
