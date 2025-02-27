@@ -70,5 +70,6 @@ jobs:
           abuild -r -F
           EOF
       - name: Remove other packages
+        if: ${{ always() }}
         run: |
           find packages/${{ inputs.repository-name }} -maxdepth 1 -mindepth 1 ! -name '${{ inputs.apk-arch }}' | xargs rm -rf
