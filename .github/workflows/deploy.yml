@@ -70,6 +70,8 @@ jobs:
     needs:
       - build
       - initialize
+      - get-apkbuild-matrix
+    if: always() && !contains(needs.*.result, 'cancelled') && !contains(needs.initialize.result, 'failure') && !contains(needs.get-apkbuild-matrix.result, 'failure')
     steps:
       - uses: actions/cache/restore@v4.2.2
         with:
@@ -92,6 +94,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     needs: upload-artifact
+    if: always() && !contains(needs.*.result, 'cancelled') && !contains(needs.*.result, 'failure')
     steps:
       - name: Download a single artifact
         uses: actions/download-artifact@v4.1.9
