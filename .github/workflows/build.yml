@@ -33,7 +33,7 @@ jobs:
         with:
           path: src
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3.5.0
+        uses: docker/setup-qemu-action@v3.6.0
       - name: Key
         env:
           PACKAGER_PRIVKEY: ${{ secrets.PACKAGER_PRIVKEY }}
