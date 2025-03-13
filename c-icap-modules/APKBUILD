@@ -1,0 +1,41 @@
+# Contributor: Mituharu Seki <mitsu1986@gmail.com>
+# Maintainer:
+pkgname=c-icap-modules
+pkgver=0.5.7
+pkgrel=0
+pkgdesc="An implementation of an ICAP server."
+url="http://c-icap.sourceforge.net"
+arch="all"
+license="LGPL-2.1"
+depends="c-icap db clamav-libs"
+makedepends="c-icap-dev db-dev clamav-dev"
+checkdepends=""
+install=""
+subpackages="$pkgname-doc"
+source="https://downloads.sourceforge.net/project/c-icap/c-icap-modules/0.5.x/c_icap_modules-$pkgver.tar.gz"
+
+builddir="$srcdir/c_icap_modules-$pkgver"
+
+build() {
+        cd "$builddir"
+        ./configure \
+                --build=$CBUILD \
+                --host=$CHOST \
+                --prefix=/usr \
+                --sysconfdir=/etc \
+                --mandir=/usr/share/man \
+                --localstatedir=/var
+        make
+}
+
+check() {
+        make check
+}
+
+package() {
+        make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+f701694114cb9b08c7b78f2b66d2d0b1aa2991aaaa4f3f0dc9d6e03aa1856c332bd1451ea470e39adf186b3762d0b12fd912c55af1f5a4d63148f0c232caecf0  c_icap_modules-0.5.7.tar.gz
+"
