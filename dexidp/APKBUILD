@@ -2,7 +2,7 @@
 # Maintainer: Mitsuharu Seki <mitsu1986@gmail.com>
 pkgname=dexidp
 # renovate: datasource=github-tags depName=dexidp/dex
-pkgver=2.42.0
+pkgver=2.44.0
 pkgrel=0
 pkgdesc="OpenID Connect (OIDC) identity and OAuth 2.0 provider with pluggable connectors"
 url="https://github.com/dexidp/dex"
@@ -41,5 +41,5 @@ examples() {
 }
 
 sha512sums="
-55b7bb4e2ae08f95678d510fbfdd58d70942f8c5ecc31365769082c246add6b5af355c39df1c9e815dc45a08997f0c09d1af6151a88ccdd96da7fdbbc15d9b3c  dexidp-2.42.0.tar.gz
+65dfca65501e601c6e8425cbfee65a64db7ad5cd9b759badca694be51a6b03d2a5f78883532dfd88590ceced55c7c5da5bc0f35d75f3bc7c9339c54f589380fc  dexidp-2.44.0.tar.gz
 "
