@@ -73,7 +73,7 @@ jobs:
       - get-apkbuild-matrix
     if: always() && !contains(needs.*.result, 'cancelled') && !contains(needs.initialize.result, 'failure') && !contains(needs.get-apkbuild-matrix.result, 'failure')
     steps:
-      - uses: actions/cache/restore@v4.2.4
+      - uses: actions/cache/restore@v4.3.0
         with:
           path: ./packages
           key: packages-${{ matrix.apk-arch }}-99999999999999
