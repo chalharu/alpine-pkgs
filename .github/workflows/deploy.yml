@@ -73,7 +73,7 @@ jobs:
       - get-apkbuild-matrix
     if: always() && !contains(needs.*.result, 'cancelled') && !contains(needs.initialize.result, 'failure') && !contains(needs.get-apkbuild-matrix.result, 'failure')
     steps:
-      - uses: actions/cache/restore@v4.2.4
+      - uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
         with:
           path: ./packages
           key: packages-${{ matrix.apk-arch }}-99999999999999
@@ -81,7 +81,7 @@ jobs:
             packages-${{ matrix.apk-arch }}-
             packages-
       - name: Archive artifacts
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: dist-${{ matrix.apk-arch }}
           retention-days: 1
@@ -97,17 +97,17 @@ jobs:
     if: always() && !contains(needs.upload-artifact.result, 'cancelled') && !contains(needs.upload-artifact.result, 'failure')
     steps:
       - name: Download a single artifact
-        uses: actions/download-artifact@v5.0.0
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
         with:
           pattern: dist-*
           merge-multiple: true
       - name: Setup Pages
-        uses: actions/configure-pages@v5.0.0
+        uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5.0.0
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v4.0.0
+        uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4.0.0
         with:
           # Upload entire repository
           path: '.'
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4.0.5
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5
