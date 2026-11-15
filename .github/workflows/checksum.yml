@@ -72,9 +72,10 @@ jobs:
               set -e
               apk add --no-cache abuild
               abuild -F checksum
+              # abuild leaves unpacked sources behind (owned by root);
+              # clean them inside the container while we still can.
+              rm -rf /pkg/src /pkg/pkg
             '
-            # abuild leaves unpacked sources behind; keep the tree clean.
-            rm -rf "$dir/src" "$dir/pkg"
           done
           echo "=== git status after checksum ==="
           git status --short
