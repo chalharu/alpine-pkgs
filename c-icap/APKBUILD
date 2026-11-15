@@ -2,7 +2,7 @@
 # Maintainer: Mitsuharu Seki <mitsu1986@gmail.com>
 pkgname=c-icap
 pkgver=0.6.3
-pkgrel=1
+pkgrel=2
 pkgdesc="An implementation of an ICAP server."
 url="http://c-icap.sourceforge.net"
 arch="all"
@@ -40,5 +40,5 @@ package() {
 sha512sums="
 acfb88cbb9ab315de0d0f5644846ea1786af94cf6902b6fea14353078b366079fcac3591e0cadf48517c5ee898ed9fb09c82bf80059141e1de1c46241ce01831  c_icap-0.6.3.tar.gz
 3b89b3c1afc506b2ab9b8b14261ddba574de3eec6f3e4456377b3392dfde3e1d3a0a0485cbd8ff4cea56cfb3cfc4be931dbb38fc282b8574c903770cf3ec1fa9  c_icap-0.6.3.patch
-f9f59749727ab20e87ccf74be911d232d0e4562ea0e6ab49d7901b84ec4a433ad20248164c68f22833332e79a6c457eb2675e4a97e9a4e6f3d806456ed4e69d6  c23-fix.patch
+765a4de3296628f4475605147464b4da784a6856c970ffc22e6a1bda0e9d50703fde387125101b5e4011c770743f332a38c4c74b549540b3bd90ccc931208e62  c23-fix.patch
 "

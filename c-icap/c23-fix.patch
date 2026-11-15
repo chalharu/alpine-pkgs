@@ -1,6 +1,6 @@
 --- c_icap-0.6.3/include/module.h
 +++ c_icap-0.6.3-new/include/module.h
-@@ -96,7 +96,7 @@
+@@ -96,6 +96,6 @@
      void *(*create_auth_data)(const char *authorization_header,const char **username);
      void (*release_auth_data)(void *data);
      char *(*authentication_header)(ci_request_t *req);
@@ -8,3 +8,15 @@
 +    void (*release_authentication_header)(const char *auth_header_value);
      struct ci_conf_entry *conf_table;
  } http_auth_method_t;
+--- c_icap-0.6.3/mpmt_server.c
++++ c_icap-0.6.3-new/mpmt_server.c
+@@ -139,7 +139,8 @@
+     /*Do nothing the signal will be ignored..... */
+ }
+
+-static void sighup_handler_main()
++static void sighup_handler_main(int sig)
+ {
++    (void)sig;
+     c_icap_reconfigure = 1;
+ }

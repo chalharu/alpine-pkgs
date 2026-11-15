@@ -14,10 +14,13 @@ on:
       arch:
         type: string
         required: true
+      runner:
+        type: string
+        required: true
 jobs:
   build:
     environment: Alpine packages
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner }}
     timeout-minutes: 720
     steps:
       - name: Checkout
@@ -25,6 +28,9 @@ jobs:
         with:
           path: src
       - name: Set up QEMU
+        # Only needed when emulating; native runners (e.g. ubuntu-24.04-arm
+        # building linux/arm64) skip this entirely.
+        if: ${{ (inputs.arch == 'amd64' && runner.arch != 'X64') || (inputs.arch == 'arm64' && runner.arch != 'ARM64') }}
         uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
       - name: Key
         env:
@@ -72,6 +78,13 @@ jobs:
           for pkgdir in ${{ inputs.package-dirs }}; do
             echo "=== Building $pkgdir for ${{ inputs.apk-arch }} ==="
             cd /${{ inputs.repository-name }}/src/$pkgdir
+            # Self-heal stale checksums (e.g. after a Renovate pkgver bump
+            # merged before the checksum workflow ran). No-op when already
+            # correct. cloudflared is excluded: its case-$CARCH pattern is
+            # not understood by `abuild checksum` (see checksum.yml).
+            if [ "$pkgdir" != "cloudflared" ]; then
+              abuild -F checksum
+            fi
             abuild -r -F
             cd $LOCALREPO
             apk index -o APKINDEX.tar.gz *.apk

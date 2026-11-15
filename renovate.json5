@@ -10,6 +10,12 @@
     'custom.regex',
   ],
   rebaseWhen: 'behind-base-branch',
+  // Commits pushed by the checksum workflow (github-actions[bot]) must not
+  // mark Renovate branches as "edited", otherwise Renovate stops updating
+  // them. See https://docs.renovatebot.com/configuration-options/#gitignoredauthors
+  gitIgnoredAuthors: [
+    '41898282+github-actions[bot]@users.noreply.github.com',
+  ],
   customManagers: [
     {
       customType: 'regex',

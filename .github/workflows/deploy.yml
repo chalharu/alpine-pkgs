@@ -51,8 +51,13 @@ jobs:
         include:
           - arch: amd64
             apk-arch: x86_64
+            # Native runner: no QEMU emulation needed.
+            runner: ubuntu-latest
           - arch: arm64
             apk-arch: aarch64
+            # Native ARM runner: avoids slow QEMU emulation
+            # (especially the Go build of dexidp).
+            runner: ubuntu-24.04-arm
     needs:
       - initialize
       - get-package-dirs
@@ -61,6 +66,7 @@ jobs:
       repository-name: ${{ needs.initialize.outputs.repository-name }}
       apk-arch: ${{ matrix.apk-arch }}
       arch: ${{ matrix.arch }}
+      runner: ${{ matrix.runner }}
     uses: "./.github/workflows/build.yml"
     secrets: inherit
   deploy:
