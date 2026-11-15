@@ -35,9 +35,23 @@ jobs:
           else
             files=$(find . -name APKBUILD -type f | sed 's|^\./||')
           fi
+          # NOTE: cloudflared/APKBUILD uses a `case "$CARCH"` per-arch
+          # sha512sums pattern which `abuild checksum` does not understand:
+          # it would replace the trailing `sha512sums="$sha512sums ...`
+          # continuation with a single hard-coded arch hash and break every
+          # other arch. Keep it out of automation and update its 5 hashes
+          # manually on Renovate PRs:
+          #   for a in amd64 arm64 386 arm armhf; do
+          #     curl -sL "https://github.com/cloudflare/cloudflared/releases/download/<ver>/cloudflared-linux-$a" | sha512sum
+          #   done
+          skip="cloudflared/APKBUILD"
           # Keep only files that still exist (a PR may delete a package).
           existing=""
           for f in $files; do
+            if [ "$f" = "$skip" ]; then
+              echo "Skipping $f (manual checksums required, see above)."
+              continue
+            fi
             if [ -f "$f" ]; then
               existing="$existing $f"
             fi
@@ -59,6 +73,8 @@ jobs:
               apk add --no-cache abuild
               abuild -F checksum
             '
+            # abuild leaves unpacked sources behind; keep the tree clean.
+            rm -rf "$dir/src" "$dir/pkg"
           done
           echo "=== git status after checksum ==="
           git status --short
