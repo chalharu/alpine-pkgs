@@ -25,18 +25,22 @@ jobs:
         run: echo "repository-name=${GITHUB_REPOSITORY#${GITHUB_REPOSITORY_OWNER}/}" >> $GITHUB_OUTPUT
     outputs:
       repository-name: ${{ steps.repository-name.outputs.repository-name }}
-  get-apkbuild-matrix:
+  get-package-dirs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          path: src
-      - name: APKBUILDファイルの検索
-        id: apkbuild-files
-        run: echo "apkbuild-files=$(find $PWD/src -name APKBUILD -type f | jq -R | jq -s -c)" >> $GITHUB_OUTPUT
+      - name: Package directoryの検索
+        id: package-dirs
+        # Sort alphabetically so that dependencies (e.g. c-icap) are
+        # built before dependants (e.g. c-icap-modules).
+        # Output is a space-separated list of paths relative to the repo root.
+        run: |
+          dirs=$(find . -maxdepth 2 -name APKBUILD -type f | xargs -n1 dirname | sed 's|^\./||' | sort | tr '\n' ' ')
+          echo "package-dirs=$dirs" >> $GITHUB_OUTPUT
+          echo "Found: $dirs"
     outputs:
-      apkbuild-files: ${{ steps.apkbuild-files.outputs.apkbuild-files }}
+      package-dirs: ${{ steps.package-dirs.outputs.package-dirs }}
   build:
     strategy:
       fail-fast: false
@@ -47,60 +51,51 @@ jobs:
         include:
           - arch: amd64
             apk-arch: x86_64
-          - arch: arm64/v8
+          - arch: arm64
             apk-arch: aarch64
     needs:
       - initialize
-      - get-apkbuild-matrix
+      - get-package-dirs
     with:
-      apkbuild-files: ${{ needs.get-apkbuild-matrix.outputs.apkbuild-files }}
+      package-dirs: ${{ needs.get-package-dirs.outputs.package-dirs }}
       repository-name: ${{ needs.initialize.outputs.repository-name }}
       apk-arch: ${{ matrix.apk-arch }}
       arch: ${{ matrix.arch }}
     uses: "./.github/workflows/build.yml"
     secrets: inherit
-  upload-artifact:
-    strategy:
-      matrix:
-        apk-arch:
-          - x86_64
-          - aarch64
-    environment: Alpine packages
-    runs-on: ubuntu-latest
-    needs:
-      - build
-      - initialize
-      - get-apkbuild-matrix
-    if: always() && !contains(needs.*.result, 'cancelled') && !contains(needs.initialize.result, 'failure') && !contains(needs.get-apkbuild-matrix.result, 'failure')
-    steps:
-      - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ./packages
-          key: packages-${{ matrix.apk-arch }}-99999999999999
-          restore-keys: |
-            packages-${{ matrix.apk-arch }}-
-            packages-
-      - name: Archive artifacts
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: dist-${{ matrix.apk-arch }}
-          retention-days: 1
-          path: |
-            packages/${{ needs.initialize.outputs.repository-name }}
-          overwrite: true
   deploy:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
-    needs: upload-artifact
-    if: always() && !contains(needs.upload-artifact.result, 'cancelled') && !contains(needs.upload-artifact.result, 'failure')
+    needs:
+      - build
+      - initialize
     steps:
-      - name: Download a single artifact
+      - name: Download all artifacts
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           pattern: dist-*
           merge-multiple: true
+      - name: Flatten repository layout
+        # Each dist-* artifact contains <repo>/<arch>/*.apk + APKINDEX.
+        # Merge them and move arch dirs to the Pages root so that users can use
+        # https://<user>.github.io/<repo>/<arch> as an apk repository.
+        run: |
+          ls -R
+          repo="${{ needs.initialize.outputs.repository-name }}"
+          if [ -d "$repo" ]; then
+            mv "$repo"/* .
+            rmdir "$repo"
+          fi
+          ls -R
+          # Ensure each arch has an index; fail early otherwise.
+          for d in x86_64 aarch64; do
+            if [ ! -f "$d/APKINDEX.tar.gz" ]; then
+              echo "::error::Missing $d/APKINDEX.tar.gz"
+              exit 1
+            fi
+          done
       - name: Setup Pages
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
       - name: Upload artifact

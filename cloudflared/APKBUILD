@@ -21,11 +21,11 @@ pkggroups="$pkgname"
 install="$pkgname.pre-install"
 
 case "$CARCH" in
-    x86)     _binarch=386; sha512sums="a770b2832d541f820bd96bcb10e73cb6410681d7c8e911aed285aeda8dc60ecb7315a270881fe9a8d56ec0dc44a5d5aa674a62aaf27b87df1703d623404bf941  cloudflared-linux-$_binarch-$pkgver" ;;
-    x86_64)  _binarch=amd64; sha512sums="e5d2c64f882eb871d3241c37a8588614ab2eb72028377e9cad396f8f6f2041ee84891f110b17f68d69c0e888fa3c1853a97c54374f3c73c116a0c9f680dbf04a  cloudflared-linux-$_binarch-$pkgver";;
-    armv7)   _binarch=arm; sha512sums="04822c2d9baad7ae298e23a13ad3b98789f26a2f7a7b5939431ab4a83ba02504209ca9596e1cd59a58ac3323137fd84324d37f27e2086d2efa6575b154433fea  cloudflared-linux-$_binarch-$pkgver";;
-    armhf)   _binarch=armhf; sha512sums="e8040e27ccb04c376dfe186654a35444c96d0f6ef0322e80e358c18a581ac23a466589d36ac4ef2d456dd22cc225b7efed4a392d07952c3b3f58ef873e4bcf25  cloudflared-linux-$_binarch-$pkgver";;
-    aarch64) _binarch=arm64; sha512sums="edc97bd7492c227fba337a658db0a02ff80a7a5bf42c434037888c0f08d088cee2014bd40f97ba0cf6ab48a6e9a1e7add4824e8e4ddcb3878bc21d47a090c590  cloudflared-linux-$_binarch-$pkgver";;
+    x86)     _binarch=386; sha512sums="bf56221fe7188526f9a5d3c1e26d83b6d8e1b79960c028ac2d2483376bb6b0d4f9e1c1e0b432c150ffe97090ddb42edfbb7580988f3d6700ea2c6e2c4d580a45  cloudflared-linux-$_binarch-$pkgver" ;;
+    x86_64)  _binarch=amd64; sha512sums="1c744c5f2a6a95c054464b932f3d54dac1833fbe1b2b1e188a37bdcfa38c263c2018d00b6c1f4e14c17f1ae852f76dbe28352b07d1d1acd30ce488f5fff0b4e0  cloudflared-linux-$_binarch-$pkgver";;
+    armv7)   _binarch=arm; sha512sums="b88a94fdc6ab052c8a1db594f100688effb4425abe8dab6173f129e0c729189de274156488998249f1174e32173f354147537e707a899b5544b6bb0c0c967e1d  cloudflared-linux-$_binarch-$pkgver";;
+    armhf)   _binarch=armhf; sha512sums="58a5664374fded0f69f142e539d0ea2bccf8a69b9d867aaf2d91c1578742cd97ccc7a7e7afcde0b03d7d315342a0280a6f23df9f38520db26fa3d8c9bff0d755  cloudflared-linux-$_binarch-$pkgver";;
+    aarch64) _binarch=arm64; sha512sums="b317073513afed79cc3f7ec04aeea6158de8227c4afcf9bc6e52e1ee9ebfc6477a12b0b04ecafdf1c91d60a7be55866f021b8c809800bd1c0f72f59845678e60  cloudflared-linux-$_binarch-$pkgver";;
     *)       msg "Unable to determine architecture from (CARCH=$CARCH)" ; return 1 ;;
 esac
 

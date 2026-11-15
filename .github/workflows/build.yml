@@ -2,7 +2,7 @@ name: Build alpine packages
 on:
   workflow_call:
     inputs:
-      apkbuild-files:
+      package-dirs:
         type: string
         required: true
       repository-name:
@@ -16,18 +16,10 @@ on:
         required: true
 jobs:
   build:
-    strategy:
-      fail-fast: false
-      max-parallel: 1
-      matrix:
-        apkbuild-files: ${{ fromJson(inputs.apkbuild-files) }}
     environment: Alpine packages
     runs-on: ubuntu-latest
     timeout-minutes: 720
     steps:
-      - name: IDの生成
-        id: build-id
-        run: echo "id=$(date +%s)" >> $GITHUB_OUTPUT
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -39,37 +31,59 @@ jobs:
           PACKAGER_PRIVKEY: ${{ secrets.PACKAGER_PRIVKEY }}
           PACKAGER_PUBKEY: ${{ vars.PACKAGER_PUBKEY }}
         run: |
-          mkdir ./keys
-          echo $PACKAGER_PRIVKEY | base64 -d > ./keys/${{ vars.PACKAGER_KEYFILENAME }}
-          echo $PACKAGER_PUBKEY | base64 -d > ./keys/${{ vars.PACKAGER_KEYFILENAME }}.pub
-      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ./packages
-          key: packages-${{ inputs.apk-arch }}-${{ steps.build-id.outputs.id }}
-          restore-keys: |
-            packages-${{ inputs.apk-arch }}-
-            packages-
-      - name: Build package
+          mkdir -p ./keys ./packages
+          echo "$PACKAGER_PRIVKEY" | base64 -d > ./keys/${{ vars.PACKAGER_KEYFILENAME }}
+          chmod 600 ./keys/${{ vars.PACKAGER_KEYFILENAME }}
+          echo "$PACKAGER_PUBKEY" | base64 -d > ./keys/${{ vars.PACKAGER_KEYFILENAME }}.pub
+      - name: Build packages
         env:
           PACKAGER_PRIVKEY: ${{ secrets.PACKAGER_PRIVKEY }}
           PACKAGER_PUBKEY: ${{ vars.PACKAGER_PUBKEY }}
           # renovate: datasource=docker depName=alpine
           DOCKER_ALPINE_VERSION: "3.24"
         run: |
-          docker run --platform linux/${{ inputs.arch }} --rm -i -v $(dirname ${{ matrix.apkbuild-files }}):/${{ inputs.repository-name }}/src -v $PWD/keys:/${{ inputs.repository-name }}/keys -v $PWD/packages:/${{ inputs.repository-name }}/packages alpine:${{ env.DOCKER_ALPINE_VERSION }} sh <<'EOF'
+          docker run --platform linux/${{ inputs.arch }} --rm -i \
+            -v $PWD/src:/${{ inputs.repository-name }}/src \
+            -v $PWD/keys:/${{ inputs.repository-name }}/keys \
+            -v $PWD/packages:/${{ inputs.repository-name }}/packages \
+            alpine:${{ env.DOCKER_ALPINE_VERSION }} sh <<'EOF'
+          set -e
           apk add alpine-sdk
           ABUILD_CONF="/etc/abuild.conf"
           if [ `grep -E "^PACKAGER=" $ABUILD_CONF | wc -l` == "0" ]; then echo 'PACKAGER="${{ vars.PACKAGER }}"' >> $ABUILD_CONF; fi
           if [ `grep -E "^MAINTAINER=" $ABUILD_CONF | wc -l` == "0" ]; then echo 'MAINTAINER="${{ vars.MAINTAINER }}"' >> $ABUILD_CONF; fi
           cp /${{ inputs.repository-name }}/keys/${{ vars.PACKAGER_KEYFILENAME }}.pub /etc/apk/keys/
+          chmod 600 /${{ inputs.repository-name }}/keys/${{ vars.PACKAGER_KEYFILENAME }}
           if [ `grep -E "^PACKAGER_PRIVKEY=" $ABUILD_CONF | wc -l` == "0" ]; then echo 'PACKAGER_PRIVKEY=/${{ inputs.repository-name }}/keys/${{ vars.PACKAGER_KEYFILENAME }}' >> $ABUILD_CONF; fi
           DESTDIR=/${{ inputs.repository-name }}/packages
           if [ `grep -E "^REPODEST=" $ABUILD_CONF | wc -l` == "0" ]; then echo "REPODEST=$DESTDIR" >> $ABUILD_CONF; fi
           mkdir -p $DESTDIR
-          cd /${{ inputs.repository-name }}/src
-          abuild -r -F
+          LOCALREPO=$DESTDIR/${{ inputs.repository-name }}/${{ inputs.apk-arch }}
+          mkdir -p $LOCALREPO
+          # Initialise an (empty) local repository so that subsequently
+          # built packages (e.g. c-icap for c-icap-modules) can be resolved
+          # via `abuild -r`.
+          cd $LOCALREPO
+          apk index -o APKINDEX.tar.gz *.apk || true
+          # abuild-sign fails on an empty index; ignore until we have packages.
+          abuild-sign -k /${{ inputs.repository-name }}/keys/${{ vars.PACKAGER_KEYFILENAME }} APKINDEX.tar.gz || true
+          if ! grep -qxF "$LOCALREPO" /etc/apk/repositories; then echo "$LOCALREPO" >> /etc/apk/repositories; fi
+          apk update || true
+          for pkgdir in ${{ inputs.package-dirs }}; do
+            echo "=== Building $pkgdir for ${{ inputs.apk-arch }} ==="
+            cd /${{ inputs.repository-name }}/src/$pkgdir
+            abuild -r -F
+            cd $LOCALREPO
+            apk index -o APKINDEX.tar.gz *.apk
+            abuild-sign -k /${{ inputs.repository-name }}/keys/${{ vars.PACKAGER_KEYFILENAME }} APKINDEX.tar.gz
+            apk update
+          done
           EOF
-      - name: Remove other packages
-        if: ${{ always() }}
-        run: |
-          find packages/${{ inputs.repository-name }} -maxdepth 1 -mindepth 1 ! -name '${{ inputs.apk-arch }}' | xargs rm -rf
+      - name: Upload artifact
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: dist-${{ inputs.apk-arch }}
+          retention-days: 1
+          path: |
+            packages/${{ inputs.repository-name }}
+          overwrite: true
