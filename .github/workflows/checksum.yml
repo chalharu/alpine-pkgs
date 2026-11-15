@@ -1,0 +1,89 @@
+name: Update APKBUILD checksums
+
+on:
+  pull_request:
+    paths:
+      - "**/APKBUILD"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: checksum-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checksum:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          # Full history is unnecessary; a shallow checkout of the head is enough.
+          # Pushing back to the same branch only needs the single commit.
+      - name: Collect changed APKBUILDs
+        id: targets
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            base="${{ github.event.pull_request.base.sha }}"
+            git fetch --no-tags --depth=1 origin "$base"
+            files=$(git diff --name-only "$base" HEAD -- '*/APKBUILD' 'APKBUILD' || true)
+          else
+            files=$(find . -name APKBUILD -type f | sed 's|^\./||')
+          fi
+          # Keep only files that still exist (a PR may delete a package).
+          existing=""
+          for f in $files; do
+            if [ -f "$f" ]; then
+              existing="$existing $f"
+            fi
+          done
+          # Space-separated list for the next step.
+          echo "files=$existing" >> $GITHUB_OUTPUT
+          echo "Targets:$existing"
+      - name: Run abuild checksum
+        if: steps.targets.outputs.files != ''
+        env:
+          # renovate: datasource=docker depName=alpine
+          DOCKER_ALPINE_VERSION: "3.24"
+        run: |
+          for f in ${{ steps.targets.outputs.files }}; do
+            dir=$(dirname "$f")
+            echo "=== abuild checksum in $dir ==="
+            docker run --rm -i -v "$PWD/$dir:/pkg" -w /pkg alpine:${{ env.DOCKER_ALPINE_VERSION }} sh -c '
+              set -e
+              apk add --no-cache abuild
+              abuild -F checksum
+            '
+          done
+          echo "=== git status after checksum ==="
+          git status --short
+      - name: Push fixes to PR branch
+        # Fork PRs use a read-only token; only show the diff there.
+        if: steps.targets.outputs.files != '' && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: |
+          if git diff --quiet; then
+            echo "Checksums are already up to date."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- '*/APKBUILD' 'APKBUILD'
+          git commit -m "Update APKBUILD checksums"
+          git push origin "HEAD:$HEAD_REF"
+      - name: Fail on fork PRs with stale checksums
+        if: steps.targets.outputs.files != '' && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository
+        run: |
+          if git diff --quiet; then
+            echo "Checksums are already up to date."
+            exit 0
+          fi
+          echo "::error::APKBUILD checksums are stale. Run 'abuild checksum' locally and push."
+          git diff
+          exit 1
