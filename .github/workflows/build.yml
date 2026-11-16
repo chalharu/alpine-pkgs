@@ -77,7 +77,11 @@ jobs:
           apk index -o APKINDEX.tar.gz *.apk || true
           # abuild-sign fails on an empty index; ignore until we have packages.
           abuild-sign -k /${{ inputs.repository-name }}/keys/${{ vars.PACKAGER_KEYFILENAME }} APKINDEX.tar.gz || true
-          if ! grep -qxF "$LOCALREPO" /etc/apk/repositories; then echo "$LOCALREPO" >> /etc/apk/repositories; fi
+          # Register the local repository. apk appends /<arch>/APKINDEX.tar.gz
+          # itself, so register the repo root ($DESTDIR/<repo>), not the
+          # arch subdirectory (registering the latter makes apk look for
+          # <repo>/<arch>/<arch>/APKINDEX.tar.gz).
+          if ! grep -qxF "$DESTDIR/${{ inputs.repository-name }}" /etc/apk/repositories; then echo "$DESTDIR/${{ inputs.repository-name }}" >> /etc/apk/repositories; fi
           apk update || true
           for pkgdir in ${{ inputs.package-dirs }}; do
             echo "=== Building $pkgdir for ${{ inputs.apk-arch }} ==="
