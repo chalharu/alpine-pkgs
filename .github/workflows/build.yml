@@ -74,7 +74,12 @@ jobs:
           # built packages (e.g. c-icap for c-icap-modules) can be resolved
           # via `abuild -r`.
           cd $LOCALREPO
-          apk index -o APKINDEX.tar.gz *.apk || true
+          # --rewrite-arch: abuild labels *-doc/*-openrc/etc packages as
+          # noarch, but stores them in the $arch dir. The index must claim
+          # them as $arch (like abuild's own update_abuildrepo_index does),
+          # otherwise apk looks for them under <repo>/noarch/ and fails
+          # with "package mentioned in index not found".
+          apk index -o APKINDEX.tar.gz --rewrite-arch ${{ inputs.apk-arch }} *.apk || true
           # abuild-sign fails on an empty index; ignore until we have packages.
           abuild-sign -k /${{ inputs.repository-name }}/keys/${{ vars.PACKAGER_KEYFILENAME }} APKINDEX.tar.gz || true
           # Register the local repository. apk appends /<arch>/APKINDEX.tar.gz
@@ -95,7 +100,7 @@ jobs:
             fi
             abuild -r -F
             cd $LOCALREPO
-            apk index -o APKINDEX.tar.gz *.apk
+            apk index -o APKINDEX.tar.gz --rewrite-arch ${{ inputs.apk-arch }} *.apk
             abuild-sign -k /${{ inputs.repository-name }}/keys/${{ vars.PACKAGER_KEYFILENAME }} APKINDEX.tar.gz
             apk update
           done
