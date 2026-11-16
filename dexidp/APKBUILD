@@ -18,6 +18,11 @@ builddir="$srcdir/dex-$pkgver"
 options="net"
 
 build() {
+	# dex's go.mod may require a newer Go than Alpine ships
+	# (Alpine's go defaults to GOTOOLCHAIN=local, refusing upgrades).
+	# Allow the go command to fetch the required toolchain;
+	# network access is already declared via options="net".
+	export GOTOOLCHAIN=auto
 	make build
 	make examples
 }
