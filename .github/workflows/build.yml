@@ -49,7 +49,7 @@ jobs:
           DOCKER_ALPINE_VERSION: "3.24"
         run: |
           docker run --platform linux/${{ inputs.arch }} --rm -i \
-            -v $PWD/src:/${{ inputs.repository-name }}/src \
+            -v $PWD/src:/${{ inputs.repository-name }}/${{ inputs.repository-name }} \
             -v $PWD/keys:/${{ inputs.repository-name }}/keys \
             -v $PWD/packages:/${{ inputs.repository-name }}/packages \
             alpine:${{ env.DOCKER_ALPINE_VERSION }} sh <<'EOF'
@@ -64,6 +64,10 @@ jobs:
           DESTDIR=/${{ inputs.repository-name }}/packages
           if [ `grep -E "^REPODEST=" $ABUILD_CONF | wc -l` == "0" ]; then echo "REPODEST=$DESTDIR" >> $ABUILD_CONF; fi
           mkdir -p $DESTDIR
+          # abuild derives the repository name from the parent directory of
+          # the APKBUILD (aports layout: <aports>/<repo>/<pkgdir>), so the
+          # checkout must live at /<repo>/<repo>/<pkgdir> for packages to
+          # land in $REPODEST/<repo>/<arch>.
           LOCALREPO=$DESTDIR/${{ inputs.repository-name }}/${{ inputs.apk-arch }}
           mkdir -p $LOCALREPO
           # Initialise an (empty) local repository so that subsequently
@@ -77,7 +81,7 @@ jobs:
           apk update || true
           for pkgdir in ${{ inputs.package-dirs }}; do
             echo "=== Building $pkgdir for ${{ inputs.apk-arch }} ==="
-            cd /${{ inputs.repository-name }}/src/$pkgdir
+            cd /${{ inputs.repository-name }}/${{ inputs.repository-name }}/$pkgdir
             # Self-heal stale checksums (e.g. after a Renovate pkgver bump
             # merged before the checksum workflow ran). No-op when already
             # correct. cloudflared is excluded: its case-$CARCH pattern is
