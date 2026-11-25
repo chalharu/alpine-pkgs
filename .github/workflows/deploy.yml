@@ -69,10 +69,7 @@ jobs:
       runner: ${{ matrix.runner }}
     uses: "./.github/workflows/build.yml"
     secrets: inherit
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  prepare-pages:
     runs-on: ubuntu-latest
     needs:
       - build
@@ -109,6 +106,14 @@ jobs:
         with:
           # Upload entire repository
           path: '.'
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs:
+      - prepare-pages
+    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
